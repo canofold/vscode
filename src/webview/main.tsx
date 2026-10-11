@@ -28,16 +28,6 @@ function isDocumentMessage(value: unknown): value is DocumentMessage {
     typeof message.documentBase === 'string' && typeof message.rootBase === 'string'
 }
 
-function syncTheme(): void {
-  document.documentElement.classList.toggle(
-    'dark',
-    document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
-  )
-}
-
-syncTheme()
-new MutationObserver(syncTheme).observe(document.body, { attributes: true, attributeFilter: ['class'] })
-
 function Preview({ message }: { message: DocumentMessage }) {
   const [error, setError] = useState<string>()
   const links = useMemo(() => new Map<string, string>(), [message])

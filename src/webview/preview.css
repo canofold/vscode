@@ -1,44 +1,27 @@
 :root {
-  font-family: var(--vscode-font-family, system-ui, sans-serif);
-  background: var(--vscode-editor-background);
-  color: var(--vscode-editor-foreground);
+  color-scheme: light;
+  background: var(--cf-surface);
+  color: var(--cf-ink-body);
 }
 
 html,
 body {
   min-height: 100%;
   margin: 0;
-  background: var(--vscode-editor-background);
+  background: var(--cf-surface);
 }
 
 #app {
   min-height: 100vh;
+  background: var(--cf-surface);
 }
 
 .preview {
-  --cf-canvas: var(--vscode-editor-background);
-  --cf-ink: var(--vscode-editor-foreground);
-  --cf-ink-body: var(--vscode-editor-foreground);
-  --cf-ink-secondary: var(--vscode-descriptionForeground);
-  --cf-ink-tertiary: var(--vscode-disabledForeground);
-  --cf-surface: var(--vscode-editor-background);
-  --cf-surface-secondary: var(--vscode-editorWidget-background, var(--vscode-editor-background));
-  --cf-surface-soft: var(--vscode-textBlockQuote-background, var(--vscode-editorWidget-background));
-  --cf-surface-elevated: var(--vscode-editorWidget-background, var(--vscode-editor-background));
-  --cf-surface-code: var(--vscode-textCodeBlock-background, var(--vscode-editorWidget-background));
-  --cf-code-ink: var(--vscode-editor-foreground);
-  --cf-hairline: var(--vscode-widget-border, transparent);
-  --cf-accent-500: var(--vscode-textLink-foreground);
-  --cf-accent-deep: var(--vscode-textLink-foreground);
-  --cf-font-display: var(--vscode-font-family, system-ui, sans-serif);
-  --cf-font-sans: var(--vscode-font-family, system-ui, sans-serif);
-  --cf-font-mono: var(--vscode-editor-font-family, monospace);
-  --cf-site-gutter: 0px;
   box-sizing: border-box;
   width: 100%;
   min-height: 100vh;
-  color: var(--vscode-editor-foreground);
-  background: var(--vscode-editor-background);
+  color: var(--cf-ink-body);
+  background: var(--cf-surface);
 }
 
 .preview .cf-content {
@@ -47,12 +30,12 @@ body {
   min-height: 100vh;
   margin: 0 auto;
   padding: 32px 48px 80px;
-  color: var(--vscode-editor-foreground);
-  background: transparent;
+  color: var(--cf-ink-body);
+  background: var(--cf-surface);
 }
 
 .preview-status {
-  color: var(--vscode-descriptionForeground);
+  color: var(--cf-ink-secondary);
 }
 
 @media (max-width: 680px) {

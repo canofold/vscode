@@ -14,7 +14,10 @@ async function run() {
   })
   await fs.access(path.join(extension.extensionPath, 'media/canofold.png'))
   const stylesheet = await fs.readFile(path.join(extension.extensionPath, 'dist/webview/main.css'), 'utf8')
-  assert.match(stylesheet, /--cf-surface:\s*var\(--vscode-editor-background\)/)
+  const webviewScript = await fs.readFile(path.join(extension.extensionPath, 'dist/webview/main.js'), 'utf8')
+  assert.doesNotMatch(stylesheet, /--cf-surface:\s*var\(--vscode-editor-background\)/)
+  assert.match(stylesheet, /background:\s*var\(--cf-surface\)/)
+  assert.doesNotMatch(webviewScript, /vscode-dark/)
   assert.match(stylesheet, /max-width:\s*1100px/)
 
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'canofold-vscode-test-'))
