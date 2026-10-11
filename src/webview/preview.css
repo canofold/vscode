@@ -1,0 +1,28 @@
+:root {
+  font-family: var(--vscode-font-family, system-ui, sans-serif);
+  background: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+}
+
+body {
+  margin: 0;
+}
+
+.preview {
+  box-sizing: border-box;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 32px 40px 80px;
+}
+
+.preview .cf-content {
+  color: var(--vscode-editor-foreground);
+}
+
+.preview-status {
+  color: var(--vscode-descriptionForeground);
+}
+
+@media (max-width: 680px) {
+  .preview { padding: 20px 18px 56px; }
+}
