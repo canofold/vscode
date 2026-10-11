@@ -2,7 +2,7 @@
   "name": "canofold-vscode",
   "displayName": "Canofold Markdown Preview",
   "description": "Preview Markdown with Canofold in the current VS Code editor tab.",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "packageManager": "pnpm@11.9.0",
   "publisher": "canofold",
   "license": "MIT",
@@ -67,6 +67,7 @@
   },
   "scripts": {
     "build": "pnpm typecheck && node scripts/build.mjs",
+    "test": "node scripts/test.mjs",
     "typecheck": "tsc --noEmit",
     "watch": "node scripts/build.mjs --watch",
     "package": "pnpm build && pnpm dlx @vscode/vsce@3.9.2 package --no-dependencies"

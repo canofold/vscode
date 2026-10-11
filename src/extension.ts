@@ -1,5 +1,6 @@
 import path from 'node:path'
 import * as vscode from 'vscode'
+import { publicDirectoryCandidates } from './resourceRoots'
 
 const VIEW_TYPE = 'canofold.markdownPreview'
 
@@ -63,6 +64,19 @@ function documentDirectory(uri: vscode.Uri): vscode.Uri {
   return uri.with({ path: path.posix.dirname(uri.path), query: '', fragment: '' })
 }
 
+async function findPublicDirectory(document: vscode.TextDocument, root: vscode.Uri): Promise<vscode.Uri | undefined> {
+  for (const candidatePath of publicDirectoryCandidates(document.uri.path, root.path)) {
+    const candidate = root.with({ path: candidatePath, query: '', fragment: '' })
+    try {
+      const stat = await vscode.workspace.fs.stat(candidate)
+      if (stat.type & vscode.FileType.Directory) return candidate
+    } catch {
+      // Continue towards the workspace root until an existing public directory is found.
+    }
+  }
+  return undefined
+}
+
 function isInsideRoot(uri: vscode.Uri, root: vscode.Uri): boolean {
   if (uri.scheme !== root.scheme || uri.authority !== root.authority) return false
   const relative = path.posix.relative(root.path, uri.path)
@@ -124,9 +138,10 @@ function webviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string 
 class MarkdownPreviewProvider implements vscode.CustomTextEditorProvider {
   constructor(private readonly extensionUri: vscode.Uri) {}
 
-  resolveCustomTextEditor(document: vscode.TextDocument, panel: vscode.WebviewPanel): void {
+  async resolveCustomTextEditor(document: vscode.TextDocument, panel: vscode.WebviewPanel): Promise<void> {
     const directory = documentDirectory(document.uri)
     const root = vscode.workspace.getWorkspaceFolder(document.uri)?.uri ?? directory
+    const publicDirectory = await findPublicDirectory(document, root)
     const bundle = vscode.Uri.joinPath(this.extensionUri, 'dist', 'webview')
     panel.webview.options = {
       enableScripts: true,
@@ -138,7 +153,7 @@ class MarkdownPreviewProvider implements vscode.CustomTextEditorProvider {
         type: 'document',
         source: document.getText(),
         documentBase: `${panel.webview.asWebviewUri(directory).toString().replace(/\/$/, '')}/`,
-        rootBase: `${panel.webview.asWebviewUri(root).toString().replace(/\/$/, '')}/`
+        rootBase: `${panel.webview.asWebviewUri(publicDirectory ?? root).toString().replace(/\/$/, '')}/`
       })
     }
 
