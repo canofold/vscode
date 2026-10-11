@@ -19,12 +19,20 @@ function isRequestedEditor(viewType: string): boolean {
     : input instanceof vscode.TabInputCustom && input.viewType === viewType
 }
 
+async function saveDirtyDocument(uri: vscode.Uri): Promise<void> {
+  const document = vscode.workspace.textDocuments.find((candidate) => candidate.uri.toString() === uri.toString())
+  if (document?.isDirty && !await document.save()) {
+    throw new Error('Save the Markdown document before opening its Canofold preview.')
+  }
+}
+
 async function reopenInCurrentTab(viewType: string, resource?: vscode.Uri): Promise<void> {
   const uri = activeMarkdownUri(resource)
   const previousGroup = vscode.window.tabGroups.activeTabGroup
   const previousTab = previousGroup.activeTab
   const previousIndex = previousTab ? previousGroup.tabs.indexOf(previousTab) : -1
   if (!uri || !previousTab || isRequestedEditor(viewType)) return
+  await saveDirtyDocument(uri)
 
   if (viewType === 'default') {
     await vscode.commands.executeCommand('workbench.action.reopenTextEditor')

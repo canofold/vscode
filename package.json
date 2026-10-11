@@ -2,7 +2,7 @@
   "name": "canofold-vscode",
   "displayName": "Canofold Markdown Preview",
   "description": "Preview Markdown with Canofold in the current VS Code editor tab.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "packageManager": "pnpm@11.9.0",
   "publisher": "canofold",
   "license": "MIT",
@@ -29,7 +29,10 @@
         "command": "canofold.toggle",
         "title": "Toggle Canofold Preview",
         "category": "Canofold",
-        "icon": "$(book)"
+        "icon": {
+          "light": "media/canofold.png",
+          "dark": "media/canofold.png"
+        }
       },
       {
         "command": "canofold.preview",
