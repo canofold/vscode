@@ -34,8 +34,48 @@ body {
   background: var(--cf-surface);
 }
 
-.preview-status {
-  color: var(--cf-ink-secondary);
+.preview-loading {
+  min-height: min(68vh, 560px);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+}
+
+.preview-loading-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.preview-loading-track {
+  width: 72px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--cf-surface-secondary);
+}
+
+.preview-loading-indicator {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cf-accent-500);
+  animation: preview-loading-slide 1s var(--cf-easing-default) infinite alternate;
+}
+
+@keyframes preview-loading-slide {
+  from { transform: translateX(0); }
+  to { transform: translateX(138%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-loading-indicator {
+    width: 100%;
+    opacity: 0.55;
+    animation: none;
+  }
 }
 
 @media (max-width: 680px) {

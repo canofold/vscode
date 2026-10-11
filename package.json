@@ -2,9 +2,10 @@
   "name": "canofold-vscode",
   "displayName": "Canofold Markdown Preview",
   "description": "Preview Markdown with Canofold in the current VS Code editor tab.",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "packageManager": "pnpm@11.9.0",
   "publisher": "canofold",
+  "icon": "media/canofold.png",
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import { Markdown, type MarkdownUrlProperty } from '@canofold/markdown'
 import '@canofold/markdown/base.css'
 import '@canofold/markdown/theme.css'
+import canofoldIcon from '../../media/canofold.png'
+import { markdownContent } from '../markdownSource'
 import './preview.css'
 
 interface VsCodeApi {
@@ -31,6 +33,7 @@ function isDocumentMessage(value: unknown): value is DocumentMessage {
 function Preview({ message }: { message: DocumentMessage }) {
   const [error, setError] = useState<string>()
   const links = useMemo(() => new Map<string, string>(), [message])
+  const source = useMemo(() => markdownContent(message.source), [message.source])
 
   const transformUrl = (value: string, property: MarkdownUrlProperty): string => {
     if (value.startsWith('#')) return value
@@ -70,10 +73,18 @@ function Preview({ message }: { message: DocumentMessage }) {
     <article className="preview" onClick={handleClick}>
       {error ? <p role="alert">Preview failed: {error}</p> : null}
       <Markdown
-        source={message.source}
+        source={source}
         options={{ html: 'sanitize' }}
         urlTransform={transformUrl}
-        fallback={<p className="preview-status">Rendering Markdown…</p>}
+        fallback={
+          <div className="preview-loading" role="status" aria-label="正在生成 Canofold 预览">
+            <img className="preview-loading-icon" src={canofoldIcon} alt="" />
+            <span className="preview-loading-track" aria-hidden="true">
+              <span className="preview-loading-indicator" />
+            </span>
+          </div>
+        }
+        retainPrevious
         onError={(reason) => setError(String(reason))}
         onReady={() => setError(undefined)}
       />
