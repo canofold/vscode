@@ -2,7 +2,7 @@
   "name": "canofold-vscode",
   "displayName": "Canofold Markdown Preview",
   "description": "Preview Markdown with Canofold in the current VS Code editor tab.",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "packageManager": "pnpm@11.9.0",
   "publisher": "canofold",
   "license": "MIT",
@@ -18,6 +18,7 @@
   "extensionKind": ["workspace"],
   "main": "./dist/extension.cjs",
   "activationEvents": [
+    "onCommand:canofold.toggle",
     "onCommand:canofold.preview",
     "onCommand:canofold.source",
     "onCustomEditor:canofold.markdownPreview"
@@ -25,27 +26,30 @@
   "contributes": {
     "commands": [
       {
+        "command": "canofold.toggle",
+        "title": "Toggle Canofold Preview",
+        "category": "Canofold",
+        "icon": "$(book)"
+      },
+      {
         "command": "canofold.preview",
-        "title": "Preview",
-        "category": "Canofold"
+        "title": "Preview with Canofold",
+        "category": "Canofold",
+        "icon": "$(book)"
       },
       {
         "command": "canofold.source",
-        "title": "Markdown",
-        "category": "Canofold"
+        "title": "Edit Markdown Source",
+        "category": "Canofold",
+        "icon": "$(go-to-file)"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "canofold.preview",
-          "when": "resourceExtname == .md",
+          "command": "canofold.toggle",
+          "when": "(editorLangId == markdown && !notebookEditorFocused) || activeCustomEditorId == 'canofold.markdownPreview'",
           "group": "navigation@10"
-        },
-        {
-          "command": "canofold.source",
-          "when": "resourceExtname == .md",
-          "group": "navigation@11"
         }
       ]
     },

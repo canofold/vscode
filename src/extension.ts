@@ -3,7 +3,8 @@ import * as vscode from 'vscode'
 
 const VIEW_TYPE = 'canofold.markdownPreview'
 
-function activeMarkdownUri(): vscode.Uri | undefined {
+function activeMarkdownUri(resource?: vscode.Uri): vscode.Uri | undefined {
+  if (resource instanceof vscode.Uri && resource.path.toLowerCase().endsWith('.md')) return resource
   const input = vscode.window.tabGroups.activeTabGroup.activeTab?.input
   if (input instanceof vscode.TabInputText || input instanceof vscode.TabInputCustom) {
     return input.uri.path.toLowerCase().endsWith('.md') ? input.uri : undefined
@@ -18,18 +19,16 @@ function isRequestedEditor(viewType: string): boolean {
     : input instanceof vscode.TabInputCustom && input.viewType === viewType
 }
 
-async function reopenInCurrentTab(viewType: string): Promise<void> {
-  const uri = activeMarkdownUri()
-  const previousTab = vscode.window.tabGroups.activeTabGroup.activeTab
+async function reopenInCurrentTab(viewType: string, resource?: vscode.Uri): Promise<void> {
+  const uri = activeMarkdownUri(resource)
+  const previousGroup = vscode.window.tabGroups.activeTabGroup
+  const previousTab = previousGroup.activeTab
+  const previousIndex = previousTab ? previousGroup.tabs.indexOf(previousTab) : -1
   if (!uri || !previousTab || isRequestedEditor(viewType)) return
 
-  // Current VS Code releases can replace the editor in place. The documented
-  // openWith command below covers releases where this command is unavailable.
-  try {
-    await vscode.commands.executeCommand('reopenActiveEditorWith', viewType)
+  if (viewType === 'default') {
+    await vscode.commands.executeCommand('workbench.action.reopenTextEditor')
     if (isRequestedEditor(viewType)) return
-  } catch {
-    // Fall through to the public API.
   }
 
   await vscode.commands.executeCommand('vscode.openWith', uri, viewType, {
@@ -41,12 +40,14 @@ async function reopenInCurrentTab(viewType: string): Promise<void> {
     throw new Error('VS Code did not open the requested editor.')
   }
 
-  const group = vscode.window.tabGroups.all.find((item) => item.tabs.includes(previousTab))
-  if (group && previousTab !== group.activeTab) {
-    const closed = await vscode.window.tabGroups.close(previousTab)
-    if (!closed) {
-      throw new Error('VS Code kept the previous tab open. Please close the duplicate manually.')
-    }
+  const currentGroup = vscode.window.tabGroups.all.find((group) => group.viewColumn === previousGroup.viewColumn)
+  const currentTab = currentGroup?.activeTab
+  const oldTab = previousIndex >= 0 ? currentGroup?.tabs[previousIndex] : undefined
+  if (!oldTab || oldTab === currentTab) return
+
+  const closed = await vscode.window.tabGroups.close(oldTab)
+  if (!closed) {
+    throw new Error('VS Code kept the previous tab open. Please close the duplicate manually.')
   }
 }
 
@@ -153,16 +154,23 @@ class MarkdownPreviewProvider implements vscode.CustomTextEditorProvider {
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.window.registerCustomEditorProvider(VIEW_TYPE, new MarkdownPreviewProvider(context.extensionUri)),
-    vscode.commands.registerCommand('canofold.preview', async () => {
+    vscode.commands.registerCommand('canofold.toggle', async (resource?: vscode.Uri) => {
       try {
-        await reopenInCurrentTab(VIEW_TYPE)
+        await reopenInCurrentTab(isRequestedEditor(VIEW_TYPE) ? 'default' : VIEW_TYPE, resource)
       } catch (error) {
         void vscode.window.showErrorMessage(`Canofold Preview: ${String(error)}`)
       }
     }),
-    vscode.commands.registerCommand('canofold.source', async () => {
+    vscode.commands.registerCommand('canofold.preview', async (resource?: vscode.Uri) => {
       try {
-        await reopenInCurrentTab('default')
+        await reopenInCurrentTab(VIEW_TYPE, resource)
+      } catch (error) {
+        void vscode.window.showErrorMessage(`Canofold Preview: ${String(error)}`)
+      }
+    }),
+    vscode.commands.registerCommand('canofold.source', async (resource?: vscode.Uri) => {
+      try {
+        await reopenInCurrentTab('default', resource)
       } catch (error) {
         void vscode.window.showErrorMessage(`Canofold Preview: ${String(error)}`)
       }

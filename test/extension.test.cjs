@@ -13,7 +13,7 @@ async function run() {
     const document = await vscode.workspace.openTextDocument(uri)
     await vscode.window.showTextDocument(document)
 
-    await vscode.commands.executeCommand('canofold.preview')
+    await vscode.commands.executeCommand('canofold.toggle', uri)
     const preview = vscode.window.tabGroups.activeTabGroup.activeTab?.input
     assert.ok(preview instanceof vscode.TabInputCustom)
     assert.equal(preview.viewType, 'canofold.markdownPreview')
@@ -30,6 +30,11 @@ async function run() {
     assert.equal(vscode.window.tabGroups.activeTabGroup.tabs.length, 1)
     assert.match(document.getText(), /Unsaved edit/)
     await document.save()
+    await vscode.commands.executeCommand('canofold.toggle')
+    assert.equal(vscode.window.tabGroups.activeTabGroup.activeTab?.input.viewType, 'canofold.markdownPreview')
+    await vscode.commands.executeCommand('canofold.toggle', uri)
+    assert.ok(vscode.window.tabGroups.activeTabGroup.activeTab?.input instanceof vscode.TabInputText)
+    assert.equal(vscode.window.tabGroups.activeTabGroup.tabs.length, 1)
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor')
   } finally {
     await fs.rm(directory, { recursive: true, force: true })
