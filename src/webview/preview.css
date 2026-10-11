@@ -16,6 +16,22 @@ body {
   background: var(--cf-surface);
 }
 
+/* Canofold dialogs render through a portal outside `.cf-content`, so they do
+   not receive the package's content-scoped browser reset in a bare webview. */
+:where(.cf-gallery-lightbox, .cf-image-lightbox, .cf-table-preview),
+:where(.cf-gallery-lightbox, .cf-image-lightbox, .cf-table-preview) *,
+:where(.cf-gallery-lightbox, .cf-image-lightbox, .cf-table-preview) *::before,
+:where(.cf-gallery-lightbox, .cf-image-lightbox, .cf-table-preview) *::after {
+  box-sizing: border-box;
+}
+
+:where(.cf-gallery-lightbox, .cf-image-lightbox, .cf-table-preview) button {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  font: inherit;
+}
+
 .preview {
   box-sizing: border-box;
   width: 100%;

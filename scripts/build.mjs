@@ -24,7 +24,7 @@ const configs = [
     loader: {
       '.svg': 'file',
       '.webp': 'file',
-      '.png': 'file',
+      '.png': 'dataurl',
       '.woff': 'file',
       '.woff2': 'file'
     }

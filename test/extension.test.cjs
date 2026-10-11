@@ -18,7 +18,13 @@ async function run() {
   assert.doesNotMatch(stylesheet, /--cf-surface:\s*var\(--vscode-editor-background\)/)
   assert.match(stylesheet, /background:\s*var\(--cf-surface\)/)
   assert.doesNotMatch(webviewScript, /vscode-dark/)
+  assert.match(webviewScript, /data:image\/png;base64,/)
+  assert.doesNotMatch(webviewScript, /\.\/assets\/canofold-/)
   assert.match(stylesheet, /max-width:\s*1100px/)
+  assert.match(stylesheet, /\.cf-gallery-lightbox/)
+  assert.match(stylesheet, /\.cf-image-lightbox/)
+  assert.match(stylesheet, /\.cf-table-preview/)
+  assert.match(stylesheet, /appearance:\s*none/)
 
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'canofold-vscode-test-'))
   const uri = vscode.Uri.file(path.join(directory, 'preview.md'))
