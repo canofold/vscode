@@ -7,12 +7,17 @@ const vscode = require('vscode')
 async function run() {
   const extension = vscode.extensions.getExtension('canofold.canofold-vscode')
   assert.ok(extension)
+  assert.equal(extension.packageJSON.dependencies['@canofold/markdown'], '0.6.2')
+  assert.equal(extension.packageJSON.dependencies['@canofold/plugins'], '0.6.2')
+  assert.equal(extension.packageJSON.dependencies['@canofold/themes'], '0.6.2')
   const toggle = extension.packageJSON.contributes.commands.find((command) => command.command === 'canofold.toggle')
   assert.deepEqual(toggle.icon, {
     light: 'media/canofold.png',
     dark: 'media/canofold.png'
   })
   await fs.access(path.join(extension.extensionPath, 'media/canofold.png'))
+  await fs.access(path.join(extension.extensionPath, 'dist/webview/mermaid.js'))
+  await fs.access(path.join(extension.extensionPath, 'dist/webview/plantuml/viz-global.js'))
   const stylesheet = await fs.readFile(path.join(extension.extensionPath, 'dist/webview/main.css'), 'utf8')
   const webviewScript = await fs.readFile(path.join(extension.extensionPath, 'dist/webview/main.js'), 'utf8')
   assert.doesNotMatch(stylesheet, /--cf-surface:\s*var\(--vscode-editor-background\)/)

@@ -19,6 +19,8 @@ The command palette also exposes **Canofold: Preview with Canofold** and **Canof
 
 The preview updates from the current text document, including unsaved edits. Relative images and links resolve from the Markdown file; links open through VS Code. Light and dark themes are supported. Raw HTML is sanitized, and MDX code is not executed.
 
+Math, Mermaid, PlantUML, Graphviz/DOT, and D2 blocks are supported. Diagram source is rendered entirely inside the extension webview with bundled browser runtimes; it is never sent to a public rendering service.
+
 To create a local VSIX after verification:
 
 ```sh

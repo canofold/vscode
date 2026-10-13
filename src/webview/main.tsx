@@ -1,10 +1,17 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Markdown, type MarkdownUrlProperty } from '@canofold/markdown'
+import { kroki, math, mermaid, plantUml } from '@canofold/plugins'
+import { enhance as enhanceKroki } from '@canofold/plugins/client/kroki'
+import { enhance as enhanceMermaid } from '@canofold/plugins/client/mermaid'
+import { enhance as enhancePlantUml } from '@canofold/plugins/client/plantuml'
 import '@canofold/markdown/base.css'
-import '@canofold/markdown/theme.css'
+import '@canofold/themes/canofold.css'
+import '@canofold/plugins/diagram.css'
+import '@canofold/plugins/math.css'
 import canofoldIcon from '../../media/canofold.png'
 import { markdownContent } from '../markdownSource'
+import { renderKrokiDiagram, renderPlantUmlDiagram } from './diagramRenderers'
 import './preview.css'
 
 interface VsCodeApi {
@@ -22,6 +29,13 @@ interface DocumentMessage {
 
 const vscode = acquireVsCodeApi()
 const root = createRoot(document.getElementById('app')!)
+const mermaidModuleUrl = new URL('./mermaid.js', import.meta.url).href
+const plugins = [
+  math(),
+  mermaid({ moduleUrl: mermaidModuleUrl }),
+  kroki({ renderer: 'client' }),
+  plantUml({ renderer: 'client' })
+]
 
 function isDocumentMessage(value: unknown): value is DocumentMessage {
   if (!value || typeof value !== 'object') return false
@@ -32,8 +46,21 @@ function isDocumentMessage(value: unknown): value is DocumentMessage {
 
 function Preview({ message }: { message: DocumentMessage }) {
   const [error, setError] = useState<string>()
+  const [readySource, setReadySource] = useState<string>()
+  const preview = useRef<HTMLElement>(null)
   const links = useMemo(() => new Map<string, string>(), [message])
   const source = useMemo(() => markdownContent(message.source), [message.source])
+
+  useEffect(() => {
+    if (readySource !== source || !preview.current) return
+    const root = preview.current
+    const enhancements = [
+      enhanceMermaid(root),
+      enhanceKroki(root, { renderer: renderKrokiDiagram }),
+      enhancePlantUml(root, { renderer: renderPlantUmlDiagram })
+    ]
+    return () => enhancements.forEach((enhancement) => enhancement.dispose())
+  }, [readySource, source])
 
   const transformUrl = (value: string, property: MarkdownUrlProperty): string => {
     if (value.startsWith('#')) return value
@@ -70,11 +97,11 @@ function Preview({ message }: { message: DocumentMessage }) {
   }
 
   return (
-    <article className="preview" onClick={handleClick}>
+    <article ref={preview} className="preview" onClick={handleClick}>
       {error ? <p role="alert">Preview failed: {error}</p> : null}
       <Markdown
         source={source}
-        options={{ html: 'sanitize' }}
+        options={{ html: 'sanitize', plugins }}
         urlTransform={transformUrl}
         fallback={
           <div className="preview-loading" role="status" aria-label="正在生成 Canofold 预览">
@@ -86,7 +113,10 @@ function Preview({ message }: { message: DocumentMessage }) {
         }
         retainPrevious
         onError={(reason) => setError(String(reason))}
-        onReady={() => setError(undefined)}
+        onReady={() => {
+          setError(undefined)
+          setReadySource(source)
+        }}
       />
     </article>
   )

@@ -1,4 +1,5 @@
 import { build, context } from 'esbuild'
+import { copyFile, mkdir, rm } from 'node:fs/promises'
 
 const configs = [
   {
@@ -11,14 +12,17 @@ const configs = [
     outfile: 'dist/extension.cjs'
   },
   {
-    entryPoints: ['src/webview/main.tsx'],
+    entryPoints: {
+      main: 'src/webview/main.tsx',
+      mermaid: 'src/webview/mermaid.ts'
+    },
     bundle: true,
     splitting: true,
     platform: 'browser',
     format: 'esm',
     target: 'es2022',
     outdir: 'dist/webview',
-    entryNames: 'main',
+    entryNames: '[name]',
     chunkNames: 'chunks/[name]-[hash]',
     assetNames: 'assets/[name]-[hash]',
     loader: {
@@ -31,9 +35,13 @@ const configs = [
   }
 ]
 
+await rm('dist', { recursive: true, force: true })
+
 if (process.argv.includes('--watch')) {
   const contexts = await Promise.all(configs.map((config) => context(config)))
   await Promise.all(contexts.map((item) => item.watch()))
 } else {
   await Promise.all(configs.map((config) => build(config)))
+  await mkdir('dist/webview/plantuml', { recursive: true })
+  await copyFile('node_modules/@plantuml/core/viz-global.js', 'dist/webview/plantuml/viz-global.js')
 }

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { publicDirectoryCandidates } from '../src/resourceRoots'
 import './markdownSource.test'
+import './plugins.test'
 
 test('site-absolute media starts at the nearest Canofold public directory', () => {
   assert.deepEqual(

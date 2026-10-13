@@ -113,8 +113,10 @@ function webviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string 
   const style = webview.asWebviewUri(vscode.Uri.joinPath(bundle, 'main.css'))
   const csp = [
     "default-src 'none'",
-    `img-src ${webview.cspSource} https: data:`,
+    `img-src ${webview.cspSource} https: data: blob:`,
     `media-src ${webview.cspSource} https:`,
+    `frame-src ${webview.cspSource} https:`,
+    `worker-src blob:`,
     `font-src ${webview.cspSource}`,
     `style-src ${webview.cspSource}`,
     `script-src ${webview.cspSource}`
