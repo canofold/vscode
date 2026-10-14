@@ -47,6 +47,7 @@
         rendering: figure.dataset.cfRendering === 'true',
         text: image ? sources.get(image.src) ?? '' : labels(figure.querySelector('.cf-diagram-preview') ?? figure),
         loaded: image ? image.complete && image.naturalWidth > 0 : !!figure.querySelector('.cf-diagram-preview svg'),
+        mathLabels: figure.querySelectorAll('.cf-diagram-preview .katex').length,
         width: image?.getBoundingClientRect().width,
         naturalWidth: image?.naturalWidth
       }

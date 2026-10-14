@@ -8,7 +8,7 @@ function source(marker, invalid = false) {
 
 ## Mermaid
 \`\`\`mermaid
-${invalid ? 'flowchart LR\n A --> [' : `flowchart LR\n ${marker} --> Preview`}
+${invalid ? 'flowchart LR\n A --> [' : `flowchart LR\n ${marker}["$$E=mc^2$$ ${marker}"] --> Preview`}
 \`\`\`
 
 ## PlantUML sequence
@@ -57,6 +57,7 @@ async function run() {
     assert.match(initial.embeds[0].html, /Local embed loaded/)
     assert.doesNotMatch(initial.embeds[0].html, /<script/i)
     assert.deepEqual(initial.violations, [])
+    assert.equal(initial.figures[0].mathLabels, 1, 'Mermaid must render its real KaTeX math label')
     console.log('[editor-test] PASS first load')
     for (let index = 1; index <= 12; index++) await edit(source(`EDIT_${index}`))
     const edited = await wait('continuous unsaved edits', complete('EDIT_12'))
