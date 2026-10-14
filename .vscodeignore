@@ -1,10 +1,13 @@
 .git/**
+.gitignore
 .github/**
 .vscode/**
 node_modules/**
 src/**
 scripts/**
+licenses/**
 test/**
 tsconfig.json
 pnpm-lock.yaml
+pnpm-workspace.yaml
 *.vsix

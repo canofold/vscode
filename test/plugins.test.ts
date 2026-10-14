@@ -4,7 +4,7 @@ import { createMarkdownRenderer } from '@canofold/markdown/server'
 import { kroki, math, mermaid, plantUml } from '@canofold/plugins'
 import { renderToStaticMarkup } from 'react-dom/server'
 
-test('Canofold 0.6.2 prepares every supported diagram for local enhancement', async () => {
+test('Canofold prepares every supported diagram for local enhancement', async () => {
   const renderer = createMarkdownRenderer()
   const source = [
     '```mermaid',

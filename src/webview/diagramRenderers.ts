@@ -2,8 +2,6 @@ import type { DiagramRenderer } from '@canofold/plugins/client/kroki'
 
 const plantUmlVizUrl = new URL('./plantuml/viz-global.js', import.meta.url).href
 
-let vizRuntime: ReturnType<typeof loadViz> | undefined
-let d2Runtime: ReturnType<typeof loadD2> | undefined
 let plantUmlRuntime: ReturnType<typeof loadPlantUml> | undefined
 let plantUmlQueue: Promise<void> = Promise.resolve()
 
@@ -29,36 +27,18 @@ function abortable<T>(work: Promise<T>, signal: AbortSignal): Promise<T> {
   })
 }
 
-async function loadViz() {
-  const { instance } = await import('@viz-js/viz')
-  return instance()
-}
-
-async function loadD2() {
-  const { D2 } = await import('@terrastruct/d2')
-  return new D2()
-}
-
 function loadClassicScript(url: string): Promise<void> {
-  const current = Array.from(document.scripts)
-    .find((script) => script.dataset.canofoldRuntime === url)
-  if (current?.dataset.loaded === 'true') return Promise.resolve()
-  if (current) {
-    return new Promise((resolve, reject) => {
-      current.addEventListener('load', () => resolve(), { once: true })
-      current.addEventListener('error', () => reject(new Error(`Failed to load ${url}`)), { once: true })
-    })
-  }
-
   return new Promise((resolve, reject) => {
     const script = document.createElement('script')
     script.src = url
-    script.dataset.canofoldRuntime = url
     script.addEventListener('load', () => {
-      script.dataset.loaded = 'true'
+      script.remove()
       resolve()
     }, { once: true })
-    script.addEventListener('error', () => reject(new Error(`Failed to load ${url}`)), { once: true })
+    script.addEventListener('error', () => {
+      script.remove()
+      reject(new Error(`Failed to load ${url}`))
+    }, { once: true })
     document.head.append(script)
   })
 }
@@ -73,39 +53,34 @@ async function loadPlantUml() {
   return import('@plantuml/core')
 }
 
-export const renderKrokiDiagram: DiagramRenderer = async ({ diagramType, source, signal }) => {
-  if (diagramType === 'graphviz') {
-    vizRuntime ??= loadViz()
-    const viz = await abortable(vizRuntime, signal)
-    const svg = viz.renderString(source, { format: 'svg', engine: 'dot' })
-    if (signal.aborted) throw aborted()
-    return { svg }
-  }
-
-  if (diagramType === 'd2') {
-    d2Runtime ??= loadD2()
-    const d2 = await abortable(d2Runtime, signal)
-    const compiled = await abortable(d2.compile(source), signal)
-    const svg = await abortable(d2.render(compiled.diagram, {
-      ...compiled.renderOptions,
-      noXMLTag: true
-    }), signal)
-    return { svg }
-  }
-
-  throw new Error(`Unsupported local diagram type: ${diagramType}`)
-}
-
 function renderPlantUml(source: string): Promise<string> {
-  plantUmlRuntime ??= loadPlantUml()
+  if (!plantUmlRuntime) {
+    const pending = loadPlantUml()
+    plantUmlRuntime = pending
+    void pending.catch(() => { if (plantUmlRuntime === pending) plantUmlRuntime = undefined })
+  }
   return plantUmlRuntime.then(({ renderToString }) => new Promise<string>((resolve, reject) => {
     const normalized = /@start\w+/i.test(source) ? source : `@startuml\n${source}\n@enduml`
-    renderToString(normalized.split(/\r\n|\r|\n/), resolve, (message) => reject(new Error(message)))
+    renderToString(normalized.split(/\r\n|\r|\n/), (svg) => {
+      const parsed = new DOMParser().parseFromString(svg, 'image/svg+xml')
+      const texts = [...parsed.querySelectorAll('text')].map((text) => text.textContent ?? '')
+      const firstText = texts[0] ?? ''
+      const errorHeader = /^\[From (?:string|file|textarea) \(line \d+\) \]$/
+      if (parsed.querySelector('parsererror') || parsed.documentElement.localName !== 'svg') {
+        reject(new Error('PlantUML returned invalid SVG.'))
+      } else if (/^An error has occurred/.test(firstText) || errorHeader.test(firstText) ||
+        (/^PlantUML version /.test(firstText) && texts.some((text) => errorHeader.test(text)))) {
+        reject(new Error(parsed.documentElement.textContent?.trim() || 'PlantUML rendering failed.'))
+      } else resolve(svg)
+    }, (message) => reject(new Error(message)))
   }))
 }
 
 export const renderPlantUmlDiagram: DiagramRenderer = ({ source, signal }) => {
-  const queued = plantUmlQueue.then(() => abortable(renderPlantUml(source), signal))
+  const queued = plantUmlQueue.then(() => {
+    signal.throwIfAborted()
+    return renderPlantUml(source)
+  })
   plantUmlQueue = queued.then(() => undefined, () => undefined)
-  return queued.then((svg) => ({ svg }))
+  return abortable(queued, signal).then((svg) => ({ svg }))
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type ComponentProps, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Markdown, type MarkdownUrlProperty } from '@canofold/markdown'
 import { kroki, math, mermaid, plantUml } from '@canofold/plugins'
@@ -11,7 +11,9 @@ import '@canofold/plugins/diagram.css'
 import '@canofold/plugins/math.css'
 import canofoldIcon from '../../media/canofold.png'
 import { markdownContent } from '../markdownSource'
-import { renderKrokiDiagram, renderPlantUmlDiagram } from './diagramRenderers'
+import { renderPlantUmlDiagram } from './diagramRenderers'
+import { createHostRequests, isPreviewHostMessage } from './hostRequests'
+import { LocalEmbedFrame } from './localEmbed'
 import './preview.css'
 
 interface VsCodeApi {
@@ -29,6 +31,13 @@ interface DocumentMessage {
 
 const vscode = acquireVsCodeApi()
 const root = createRoot(document.getElementById('app')!)
+const host = createHostRequests(vscode)
+const renderKrokiDiagram: import('@canofold/plugins/client/kroki').DiagramRenderer = ({ diagramType, source, signal }) => {
+  if (diagramType !== 'graphviz' && diagramType !== 'd2') throw new Error(`Unsupported diagram type: ${diagramType}`)
+  return host.request('renderDiagram', { diagramType, source }, signal)
+}
+const loadLocalEmbed = (href: string, signal: AbortSignal) => host.request('loadLocalEmbed', { href }, signal)
+const loadLocalEmbedAsset = (documentPath: string, href: string, signal: AbortSignal) => host.request('loadLocalEmbedAsset', { documentPath, href }, signal)
 const mermaidModuleUrl = new URL('./mermaid.js', import.meta.url).href
 const plugins = [
   math(),
@@ -49,6 +58,7 @@ function Preview({ message }: { message: DocumentMessage }) {
   const [readySource, setReadySource] = useState<string>()
   const preview = useRef<HTMLElement>(null)
   const links = useMemo(() => new Map<string, string>(), [message])
+  const localSources = useMemo(() => new Map<string, string>(), [message])
   const source = useMemo(() => markdownContent(message.source), [message.source])
 
   useEffect(() => {
@@ -59,7 +69,7 @@ function Preview({ message }: { message: DocumentMessage }) {
       enhanceKroki(root, { renderer: renderKrokiDiagram }),
       enhancePlantUml(root, { renderer: renderPlantUmlDiagram })
     ]
-    return () => enhancements.forEach((enhancement) => enhancement.dispose())
+    return () => enhancements.forEach((enhancement) => enhancement())
   }, [readySource, source])
 
   const transformUrl = (value: string, property: MarkdownUrlProperty): string => {
@@ -78,11 +88,23 @@ function Preview({ message }: { message: DocumentMessage }) {
       const relative = value.startsWith('/') ? value.slice(1) : value
       const resolved = new URL(relative, base).toString()
       if (property === 'href') links.set(resolved, value)
+      if (property === 'src') localSources.set(resolved, value)
       return resolved
     } catch {
       return ''
     }
   }
+
+  const components = useMemo(() => ({
+    iframe: (props: ComponentProps<'iframe'>) => (
+      <LocalEmbedFrame
+        {...props}
+        authoredSrc={typeof props.src === 'string' ? localSources.get(props.src) : undefined}
+        loader={loadLocalEmbed}
+        assetLoader={loadLocalEmbedAsset}
+      />
+    )
+  }), [localSources])
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     const target = event.target
@@ -102,6 +124,7 @@ function Preview({ message }: { message: DocumentMessage }) {
       <Markdown
         source={source}
         options={{ html: 'sanitize', plugins }}
+        components={components}
         urlTransform={transformUrl}
         fallback={
           <div className="preview-loading" role="status" aria-label="正在生成 Canofold 预览">
@@ -123,7 +146,9 @@ function Preview({ message }: { message: DocumentMessage }) {
 }
 
 window.addEventListener('message', (event: MessageEvent<unknown>) => {
-  if (isDocumentMessage(event.data)) root.render(<Preview key={event.data.documentBase} message={event.data} />)
+  if (isPreviewHostMessage(event) && isDocumentMessage(event.data)) root.render(<Preview key={event.data.documentBase} message={event.data} />)
 })
 
 vscode.postMessage({ type: 'ready' })
+
+window.addEventListener('pagehide', () => { root.unmount(); host.dispose() }, { once: true })

@@ -5,6 +5,29 @@ function isInside(candidatePath: string, rootPath: string): boolean {
   return relative !== '..' && !relative.startsWith('../') && !path.posix.isAbsolute(relative)
 }
 
+export function resolveLocalResourcePath(
+  documentPath: string,
+  workspaceRootPath: string,
+  publicDirectoryPath: string | undefined,
+  href: string
+): string | undefined {
+  if (!href || href.startsWith('//') || /^[a-z][\w+.-]*:/i.test(href)) return undefined
+  try {
+    const match = /^([^?#]*)/.exec(href)
+    if (!match) return undefined
+    const authoredPath = decodeURIComponent(match[1])
+    const root = path.posix.resolve('/', workspaceRootPath)
+    if (!isInside(path.posix.resolve('/', documentPath), root)) return undefined
+    const base = authoredPath.startsWith('/')
+      ? path.posix.resolve('/', publicDirectoryPath ?? workspaceRootPath)
+      : path.posix.dirname(path.posix.resolve('/', documentPath))
+    const resource = path.posix.resolve(base, authoredPath.replace(/^\/+/, ''))
+    return isInside(resource, root) ? resource : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export function publicDirectoryCandidates(documentPath: string, workspaceRootPath: string): string[] {
   const root = path.posix.resolve('/', workspaceRootPath)
   const document = path.posix.resolve('/', documentPath)

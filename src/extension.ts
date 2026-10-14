@@ -1,6 +1,8 @@
 import path from 'node:path'
 import * as vscode from 'vscode'
+import { LocalDiagramRenderer } from './localDiagramRenderer'
 import { publicDirectoryCandidates } from './resourceRoots'
+import { readLocalEmbed, readLocalEmbedAsset } from './localEmbedResources'
 
 const VIEW_TYPE = 'canofold.markdownPreview'
 
@@ -117,9 +119,10 @@ function webviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string 
     `media-src ${webview.cspSource} https:`,
     `frame-src ${webview.cspSource} https:`,
     `worker-src blob:`,
-    `font-src ${webview.cspSource}`,
-    `style-src ${webview.cspSource}`,
-    `script-src ${webview.cspSource}`
+    `font-src ${webview.cspSource} data:`,
+    // Markdown interactions and diagram engines generate styles at runtime.
+    `style-src ${webview.cspSource} data: 'unsafe-inline'`,
+    `script-src ${webview.cspSource} 'wasm-unsafe-eval'`
   ].join('; ')
 
   return `<!doctype html>
@@ -143,35 +146,86 @@ class MarkdownPreviewProvider implements vscode.CustomTextEditorProvider {
   async resolveCustomTextEditor(document: vscode.TextDocument, panel: vscode.WebviewPanel): Promise<void> {
     const directory = documentDirectory(document.uri)
     const root = vscode.workspace.getWorkspaceFolder(document.uri)?.uri ?? directory
-    const publicDirectory = await findPublicDirectory(document, root)
     const bundle = vscode.Uri.joinPath(this.extensionUri, 'dist', 'webview')
+    const renderer = new LocalDiagramRenderer()
+    const requests = new Map<number, AbortController>()
+    const disposables: vscode.Disposable[] = []
+    let disposed = false
+    const cancelRequests = () => {
+      requests.forEach((controller) => controller.abort())
+      requests.clear()
+    }
+    panel.onDidDispose(() => {
+      disposed = true
+      cancelRequests()
+      disposables.forEach((item) => item.dispose())
+      void renderer.dispose().catch((error: unknown) => console.error('[canofold] Diagram shutdown failed:', error))
+    })
+    const publicDirectory = await findPublicDirectory(document, root)
+    if (disposed) return
     panel.webview.options = {
       enableScripts: true,
       localResourceRoots: [bundle, root]
     }
 
-    const sendDocument = () => {
+    let sentSource: string | undefined
+    const sendDocument = (force = false) => {
+      const source = document.getText()
+      if (!force && source === sentSource) return
+      sentSource = source
+      cancelRequests()
       void panel.webview.postMessage({
         type: 'document',
-        source: document.getText(),
+        source,
         documentBase: `${panel.webview.asWebviewUri(directory).toString().replace(/\/$/, '')}/`,
         rootBase: `${panel.webview.asWebviewUri(publicDirectory ?? root).toString().replace(/\/$/, '')}/`
       })
     }
 
-    const disposables = [
+    disposables.push(
       vscode.workspace.onDidChangeTextDocument((event) => {
         if (event.document.uri.toString() === document.uri.toString()) sendDocument()
       }),
       panel.webview.onDidReceiveMessage((message: unknown) => {
         if (!message || typeof message !== 'object' || !('type' in message)) return
-        if (message.type === 'ready') sendDocument()
+        if (message.type === 'ready') sendDocument(true)
         if (message.type === 'openLink' && 'href' in message && typeof message.href === 'string') {
           void openLink(document, root, message.href)
         }
+        if (!('id' in message) || typeof message.id !== 'number' || !Number.isSafeInteger(message.id) || message.id <= 0) return
+        const id = message.id
+        if (message.type === 'cancelRequest') { requests.get(id)?.abort(); requests.delete(id); return }
+        let operation: ((signal: AbortSignal) => Promise<unknown>) | undefined
+        if (message.type === 'renderDiagram' && 'diagramType' in message &&
+          (message.diagramType === 'graphviz' || message.diagramType === 'd2') &&
+          'source' in message && typeof message.source === 'string') {
+          const { diagramType, source } = message
+          operation = async (signal) => ({ svg: await renderer.render(diagramType, source, signal) })
+        }
+        if (message.type === 'loadLocalEmbed' && 'href' in message && typeof message.href === 'string') {
+          const href = message.href
+          operation = () => readLocalEmbed(document.uri.path, root, publicDirectory, href)
+        }
+        if (message.type === 'loadLocalEmbedAsset' && 'documentPath' in message && typeof message.documentPath === 'string' &&
+          'href' in message && typeof message.href === 'string') {
+          const { documentPath, href } = message
+          operation = () => readLocalEmbedAsset(documentPath, root, publicDirectory, href)
+        }
+        if (!operation || disposed || requests.has(id)) return
+        const controller = new AbortController()
+        requests.set(id, controller)
+        void operation(controller.signal).then(
+          (value) => {
+            if (!disposed && !controller.signal.aborted) return panel.webview.postMessage({ type: 'hostResult', id, value })
+          },
+          (error: unknown) => {
+            if (!disposed && !controller.signal.aborted) return panel.webview.postMessage({ type: 'hostResult', id, error: String(error) })
+          }
+        ).catch((error: unknown) => console.error('[canofold] Preview response failed:', error)).finally(() => {
+          if (requests.get(id) === controller) requests.delete(id)
+        })
       })
-    ]
-    panel.onDidDispose(() => disposables.forEach((item) => item.dispose()))
+    )
     panel.webview.html = webviewHtml(panel.webview, this.extensionUri)
   }
 }
