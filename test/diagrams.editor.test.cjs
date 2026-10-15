@@ -46,6 +46,7 @@ async function run() {
   const { open, edit, wait, document } = harness
   const complete = (marker) => (snapshot) => snapshot.title?.endsWith(marker) && snapshot.figures.length === 5 &&
     snapshot.figures.every((figure) => figure.loaded && !figure.error && !figure.rendering && figure.text.includes(marker)) &&
+    snapshot.figures[0].mathLabels === 1 &&
     snapshot.embeds.length === 1 && !snapshot.embeds[0].busy
   try {
     await open()
@@ -81,6 +82,11 @@ async function run() {
     assert.equal(reopened.liveSvgUrls, 4)
     assert.deepEqual(reopened.violations, [])
     console.log('[editor-test] PASS close and reopen')
+    await edit(source('ELK_LAYOUT').replace('flowchart LR', '---\nconfig:\n  layout: elk\n---\nflowchart LR'))
+    const elk = await wait('authored ELK layout', complete('ELK_LAYOUT'))
+    assert.equal(elk.elkLoaded, true, 'Mermaid must load its bundled ELK chunk for authored layout')
+    assert.deepEqual(elk.violations, [])
+    console.log('[editor-test] PASS authored ELK layout and real math labels')
     await edit(source('CLOSING'))
     await wait('active render before closing', (snapshot) => snapshot.title?.endsWith('CLOSING') &&
       snapshot.figures.some((figure) => figure.rendering))

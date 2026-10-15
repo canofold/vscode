@@ -54,6 +54,7 @@
     })
     api.postMessage({ type: 'editorTestSnapshot', title: document.querySelector('h1')?.textContent,
       figures, violations, liveSvgUrls: sources.size,
+      elkLoaded: performance.getEntriesByType('resource').some((entry) => /\/elk[-.]/.test(entry.name)),
       text: document.querySelector('article')?.textContent,
       alerts: [...document.querySelectorAll('[role="alert"]')].map((element) => element.textContent),
       math: [...document.querySelectorAll('.katex')].map((element) => ({
