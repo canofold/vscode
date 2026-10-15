@@ -1,28 +1,99 @@
 :root {
-  font-family: var(--vscode-font-family, system-ui, sans-serif);
-  background: var(--vscode-editor-background);
-  color: var(--vscode-editor-foreground);
+  color-scheme: light;
+  background: var(--cf-surface);
+  color: var(--cf-ink-body);
 }
 
+html,
 body {
+  min-height: 100%;
   margin: 0;
+  background: var(--cf-surface);
+}
+
+#app {
+  min-height: 100vh;
+  background: var(--cf-surface);
+}
+
+/* Canofold dialogs render through a portal outside `.cf-content`, so they do
+   not receive the package's content-scoped browser reset in a bare webview. */
+:where(.cf-gallery-lightbox, .cf-image-lightbox, .cf-table-preview),
+:where(.cf-gallery-lightbox, .cf-image-lightbox, .cf-table-preview) *,
+:where(.cf-gallery-lightbox, .cf-image-lightbox, .cf-table-preview) *::before,
+:where(.cf-gallery-lightbox, .cf-image-lightbox, .cf-table-preview) *::after {
+  box-sizing: border-box;
+}
+
+:where(.cf-gallery-lightbox, .cf-image-lightbox, .cf-table-preview) button {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  font: inherit;
 }
 
 .preview {
   box-sizing: border-box;
-  max-width: 920px;
-  margin: 0 auto;
-  padding: 32px 40px 80px;
+  width: 100%;
+  min-height: 100vh;
+  color: var(--cf-ink-body);
+  background: var(--cf-surface);
 }
 
 .preview .cf-content {
-  color: var(--vscode-editor-foreground);
+  width: 100%;
+  max-width: 1100px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 32px 48px 80px;
+  color: var(--cf-ink-body);
+  background: var(--cf-surface);
 }
 
-.preview-status {
-  color: var(--vscode-descriptionForeground);
+.preview-loading {
+  min-height: min(68vh, 560px);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+}
+
+.preview-loading-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.preview-loading-track {
+  width: 72px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--cf-surface-secondary);
+}
+
+.preview-loading-indicator {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cf-accent-500);
+  animation: preview-loading-slide 1s var(--cf-easing-default) infinite alternate;
+}
+
+@keyframes preview-loading-slide {
+  from { transform: translateX(0); }
+  to { transform: translateX(138%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-loading-indicator {
+    width: 100%;
+    opacity: 0.55;
+    animation: none;
+  }
 }
 
 @media (max-width: 680px) {
-  .preview { padding: 20px 18px 56px; }
+  .preview .cf-content { padding: 24px 20px 64px; }
 }

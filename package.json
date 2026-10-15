@@ -2,9 +2,10 @@
   "name": "canofold-vscode",
   "displayName": "Canofold Markdown Preview",
   "description": "Preview Markdown with Canofold in the current VS Code editor tab.",
-  "version": "0.1.0",
+  "version": "0.1.11",
   "packageManager": "pnpm@11.9.0",
   "publisher": "canofold",
+  "icon": "media/canofold.png",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -13,11 +14,20 @@
   "engines": {
     "vscode": "^1.100.0"
   },
-  "categories": ["Other"],
-  "keywords": ["markdown", "preview", "canofold"],
-  "extensionKind": ["workspace"],
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "markdown",
+    "preview",
+    "canofold"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
   "main": "./dist/extension.cjs",
   "activationEvents": [
+    "onCommand:canofold.toggle",
     "onCommand:canofold.preview",
     "onCommand:canofold.source",
     "onCustomEditor:canofold.markdownPreview"
@@ -25,27 +35,33 @@
   "contributes": {
     "commands": [
       {
+        "command": "canofold.toggle",
+        "title": "Toggle Canofold Preview",
+        "category": "Canofold",
+        "icon": {
+          "light": "media/canofold.png",
+          "dark": "media/canofold.png"
+        }
+      },
+      {
         "command": "canofold.preview",
-        "title": "Preview",
-        "category": "Canofold"
+        "title": "Preview with Canofold",
+        "category": "Canofold",
+        "icon": "$(book)"
       },
       {
         "command": "canofold.source",
-        "title": "Markdown",
-        "category": "Canofold"
+        "title": "Edit Markdown Source",
+        "category": "Canofold",
+        "icon": "$(go-to-file)"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "canofold.preview",
-          "when": "resourceExtname == .md",
+          "command": "canofold.toggle",
+          "when": "(editorLangId == markdown && !notebookEditorFocused) || activeCustomEditorId == 'canofold.markdownPreview'",
           "group": "navigation@10"
-        },
-        {
-          "command": "canofold.source",
-          "when": "resourceExtname == .md",
-          "group": "navigation@11"
         }
       ]
     },
@@ -53,24 +69,41 @@
       {
         "viewType": "canofold.markdownPreview",
         "displayName": "Canofold Preview",
-        "selector": [{ "filenamePattern": "*.md" }],
+        "selector": [
+          {
+            "filenamePattern": "*.md"
+          }
+        ],
         "priority": "option"
       }
     ]
   },
   "scripts": {
+    "vscode:prepublish": "pnpm build",
     "build": "pnpm typecheck && node scripts/build.mjs",
+    "test": "pnpm build && node scripts/test.mjs",
+    "test:editor": "pnpm build && node scripts/test-editor.mjs",
     "typecheck": "tsc --noEmit",
     "watch": "node scripts/build.mjs --watch",
-    "package": "pnpm build && pnpm dlx @vscode/vsce@3.9.2 package --no-dependencies"
+    "package": "pnpm dlx @vscode/vsce@3.9.2 package --no-dependencies"
   },
   "dependencies": {
-    "@canofold/markdown": "0.5.0",
+    "@canofold/markdown": "0.6.5",
+    "@canofold/plugins": "0.6.5",
+    "@canofold/themes": "0.6.5",
+    "@plantuml/core": "1.2026.8",
+    "@terrastruct/d2": "0.1.33",
+    "@viz-js/viz": "3.31.0",
+    "css-tree": "^3.2.1",
+    "mermaid": "12.2.0",
+    "parse-srcset": "^1.0.2",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@types/css-tree": "^3.2.0",
     "@types/node": "^22.20.3",
+    "@types/parse-srcset": "^1.0.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/vscode": "^1.100.0",

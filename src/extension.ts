@@ -1,9 +1,13 @@
 import path from 'node:path'
 import * as vscode from 'vscode'
+import { LocalDiagramRenderer } from './localDiagramRenderer'
+import { publicDirectoryCandidates } from './resourceRoots'
+import { readLocalEmbed, readLocalEmbedAsset } from './localEmbedResources'
 
 const VIEW_TYPE = 'canofold.markdownPreview'
 
-function activeMarkdownUri(): vscode.Uri | undefined {
+function activeMarkdownUri(resource?: vscode.Uri): vscode.Uri | undefined {
+  if (resource instanceof vscode.Uri && resource.path.toLowerCase().endsWith('.md')) return resource
   const input = vscode.window.tabGroups.activeTabGroup.activeTab?.input
   if (input instanceof vscode.TabInputText || input instanceof vscode.TabInputCustom) {
     return input.uri.path.toLowerCase().endsWith('.md') ? input.uri : undefined
@@ -18,18 +22,24 @@ function isRequestedEditor(viewType: string): boolean {
     : input instanceof vscode.TabInputCustom && input.viewType === viewType
 }
 
-async function reopenInCurrentTab(viewType: string): Promise<void> {
-  const uri = activeMarkdownUri()
-  const previousTab = vscode.window.tabGroups.activeTabGroup.activeTab
-  if (!uri || !previousTab || isRequestedEditor(viewType)) return
+async function saveDirtyDocument(uri: vscode.Uri): Promise<void> {
+  const document = vscode.workspace.textDocuments.find((candidate) => candidate.uri.toString() === uri.toString())
+  if (document?.isDirty && !await document.save()) {
+    throw new Error('Save the Markdown document before opening its Canofold preview.')
+  }
+}
 
-  // Current VS Code releases can replace the editor in place. The documented
-  // openWith command below covers releases where this command is unavailable.
-  try {
-    await vscode.commands.executeCommand('reopenActiveEditorWith', viewType)
+async function reopenInCurrentTab(viewType: string, resource?: vscode.Uri): Promise<void> {
+  const uri = activeMarkdownUri(resource)
+  const previousGroup = vscode.window.tabGroups.activeTabGroup
+  const previousTab = previousGroup.activeTab
+  const previousIndex = previousTab ? previousGroup.tabs.indexOf(previousTab) : -1
+  if (!uri || !previousTab || isRequestedEditor(viewType)) return
+  await saveDirtyDocument(uri)
+
+  if (viewType === 'default') {
+    await vscode.commands.executeCommand('workbench.action.reopenTextEditor')
     if (isRequestedEditor(viewType)) return
-  } catch {
-    // Fall through to the public API.
   }
 
   await vscode.commands.executeCommand('vscode.openWith', uri, viewType, {
@@ -41,17 +51,32 @@ async function reopenInCurrentTab(viewType: string): Promise<void> {
     throw new Error('VS Code did not open the requested editor.')
   }
 
-  const group = vscode.window.tabGroups.all.find((item) => item.tabs.includes(previousTab))
-  if (group && previousTab !== group.activeTab) {
-    const closed = await vscode.window.tabGroups.close(previousTab)
-    if (!closed) {
-      throw new Error('VS Code kept the previous tab open. Please close the duplicate manually.')
-    }
+  const currentGroup = vscode.window.tabGroups.all.find((group) => group.viewColumn === previousGroup.viewColumn)
+  const currentTab = currentGroup?.activeTab
+  const oldTab = previousIndex >= 0 ? currentGroup?.tabs[previousIndex] : undefined
+  if (!oldTab || oldTab === currentTab) return
+
+  const closed = await vscode.window.tabGroups.close(oldTab)
+  if (!closed) {
+    throw new Error('VS Code kept the previous tab open. Please close the duplicate manually.')
   }
 }
 
 function documentDirectory(uri: vscode.Uri): vscode.Uri {
   return uri.with({ path: path.posix.dirname(uri.path), query: '', fragment: '' })
+}
+
+async function findPublicDirectory(document: vscode.TextDocument, root: vscode.Uri): Promise<vscode.Uri | undefined> {
+  for (const candidatePath of publicDirectoryCandidates(document.uri.path, root.path)) {
+    const candidate = root.with({ path: candidatePath, query: '', fragment: '' })
+    try {
+      const stat = await vscode.workspace.fs.stat(candidate)
+      if (stat.type & vscode.FileType.Directory) return candidate
+    } catch {
+      // Continue towards the workspace root until an existing public directory is found.
+    }
+  }
+  return undefined
 }
 
 function isInsideRoot(uri: vscode.Uri, root: vscode.Uri): boolean {
@@ -90,11 +115,14 @@ function webviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string 
   const style = webview.asWebviewUri(vscode.Uri.joinPath(bundle, 'main.css'))
   const csp = [
     "default-src 'none'",
-    `img-src ${webview.cspSource} https: data:`,
+    `img-src ${webview.cspSource} https: data: blob:`,
     `media-src ${webview.cspSource} https:`,
-    `font-src ${webview.cspSource}`,
-    `style-src ${webview.cspSource}`,
-    `script-src ${webview.cspSource}`
+    `frame-src ${webview.cspSource} https:`,
+    `worker-src blob:`,
+    `font-src ${webview.cspSource} data:`,
+    // Markdown interactions and diagram engines generate styles at runtime.
+    `style-src ${webview.cspSource} data: 'unsafe-inline'`,
+    `script-src ${webview.cspSource} 'wasm-unsafe-eval'`
   ].join('; ')
 
   return `<!doctype html>
@@ -115,37 +143,89 @@ function webviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string 
 class MarkdownPreviewProvider implements vscode.CustomTextEditorProvider {
   constructor(private readonly extensionUri: vscode.Uri) {}
 
-  resolveCustomTextEditor(document: vscode.TextDocument, panel: vscode.WebviewPanel): void {
+  async resolveCustomTextEditor(document: vscode.TextDocument, panel: vscode.WebviewPanel): Promise<void> {
     const directory = documentDirectory(document.uri)
     const root = vscode.workspace.getWorkspaceFolder(document.uri)?.uri ?? directory
     const bundle = vscode.Uri.joinPath(this.extensionUri, 'dist', 'webview')
+    const renderer = new LocalDiagramRenderer()
+    const requests = new Map<number, AbortController>()
+    const disposables: vscode.Disposable[] = []
+    let disposed = false
+    const cancelRequests = () => {
+      requests.forEach((controller) => controller.abort())
+      requests.clear()
+    }
+    panel.onDidDispose(() => {
+      disposed = true
+      cancelRequests()
+      disposables.forEach((item) => item.dispose())
+      void renderer.dispose().catch((error: unknown) => console.error('[canofold] Diagram shutdown failed:', error))
+    })
+    const publicDirectory = await findPublicDirectory(document, root)
+    if (disposed) return
     panel.webview.options = {
       enableScripts: true,
       localResourceRoots: [bundle, root]
     }
 
-    const sendDocument = () => {
+    let sentSource: string | undefined
+    const sendDocument = (force = false) => {
+      const source = document.getText()
+      if (!force && source === sentSource) return
+      sentSource = source
+      cancelRequests()
       void panel.webview.postMessage({
         type: 'document',
-        source: document.getText(),
+        source,
         documentBase: `${panel.webview.asWebviewUri(directory).toString().replace(/\/$/, '')}/`,
-        rootBase: `${panel.webview.asWebviewUri(root).toString().replace(/\/$/, '')}/`
+        rootBase: `${panel.webview.asWebviewUri(publicDirectory ?? root).toString().replace(/\/$/, '')}/`
       })
     }
 
-    const disposables = [
+    disposables.push(
       vscode.workspace.onDidChangeTextDocument((event) => {
         if (event.document.uri.toString() === document.uri.toString()) sendDocument()
       }),
       panel.webview.onDidReceiveMessage((message: unknown) => {
         if (!message || typeof message !== 'object' || !('type' in message)) return
-        if (message.type === 'ready') sendDocument()
+        if (message.type === 'ready') sendDocument(true)
         if (message.type === 'openLink' && 'href' in message && typeof message.href === 'string') {
           void openLink(document, root, message.href)
         }
+        if (!('id' in message) || typeof message.id !== 'number' || !Number.isSafeInteger(message.id) || message.id <= 0) return
+        const id = message.id
+        if (message.type === 'cancelRequest') { requests.get(id)?.abort(); requests.delete(id); return }
+        let operation: ((signal: AbortSignal) => Promise<unknown>) | undefined
+        if (message.type === 'renderDiagram' && 'diagramType' in message &&
+          (message.diagramType === 'graphviz' || message.diagramType === 'd2') &&
+          'source' in message && typeof message.source === 'string') {
+          const { diagramType, source } = message
+          operation = async (signal) => ({ svg: await renderer.render(diagramType, source, signal) })
+        }
+        if (message.type === 'loadLocalEmbed' && 'href' in message && typeof message.href === 'string') {
+          const href = message.href
+          operation = () => readLocalEmbed(document.uri.path, root, publicDirectory, href)
+        }
+        if (message.type === 'loadLocalEmbedAsset' && 'documentPath' in message && typeof message.documentPath === 'string' &&
+          'href' in message && typeof message.href === 'string') {
+          const { documentPath, href } = message
+          operation = () => readLocalEmbedAsset(documentPath, root, publicDirectory, href)
+        }
+        if (!operation || disposed || requests.has(id)) return
+        const controller = new AbortController()
+        requests.set(id, controller)
+        void operation(controller.signal).then(
+          (value) => {
+            if (!disposed && !controller.signal.aborted) return panel.webview.postMessage({ type: 'hostResult', id, value })
+          },
+          (error: unknown) => {
+            if (!disposed && !controller.signal.aborted) return panel.webview.postMessage({ type: 'hostResult', id, error: String(error) })
+          }
+        ).catch((error: unknown) => console.error('[canofold] Preview response failed:', error)).finally(() => {
+          if (requests.get(id) === controller) requests.delete(id)
+        })
       })
-    ]
-    panel.onDidDispose(() => disposables.forEach((item) => item.dispose()))
+    )
     panel.webview.html = webviewHtml(panel.webview, this.extensionUri)
   }
 }
@@ -153,16 +233,23 @@ class MarkdownPreviewProvider implements vscode.CustomTextEditorProvider {
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.window.registerCustomEditorProvider(VIEW_TYPE, new MarkdownPreviewProvider(context.extensionUri)),
-    vscode.commands.registerCommand('canofold.preview', async () => {
+    vscode.commands.registerCommand('canofold.toggle', async (resource?: vscode.Uri) => {
       try {
-        await reopenInCurrentTab(VIEW_TYPE)
+        await reopenInCurrentTab(isRequestedEditor(VIEW_TYPE) ? 'default' : VIEW_TYPE, resource)
       } catch (error) {
         void vscode.window.showErrorMessage(`Canofold Preview: ${String(error)}`)
       }
     }),
-    vscode.commands.registerCommand('canofold.source', async () => {
+    vscode.commands.registerCommand('canofold.preview', async (resource?: vscode.Uri) => {
       try {
-        await reopenInCurrentTab('default')
+        await reopenInCurrentTab(VIEW_TYPE, resource)
+      } catch (error) {
+        void vscode.window.showErrorMessage(`Canofold Preview: ${String(error)}`)
+      }
+    }),
+    vscode.commands.registerCommand('canofold.source', async (resource?: vscode.Uri) => {
+      try {
+        await reopenInCurrentTab('default', resource)
       } catch (error) {
         void vscode.window.showErrorMessage(`Canofold Preview: ${String(error)}`)
       }
