@@ -55,7 +55,9 @@
     api.postMessage({ type: 'editorTestSnapshot', title: document.querySelector('h1')?.textContent,
       figures, violations, liveSvgUrls: sources.size,
       elkLoaded: performance.getEntriesByType('resource').some((entry) => /\/elk[-.]/.test(entry.name)),
-      text: document.querySelector('article')?.textContent,
+      text: document.querySelector('article')?.textContent ?? '',
+      headings: [...document.querySelectorAll('article h1, article h2')].map((element) => element.textContent),
+      loading: document.querySelectorAll('.preview-loading').length,
       alerts: [...document.querySelectorAll('[role="alert"]')].map((element) => element.textContent),
       math: [...document.querySelectorAll('.katex')].map((element) => ({
         source: element.querySelector('annotation')?.textContent,

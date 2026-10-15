@@ -9,14 +9,14 @@ importers:
   .:
     dependencies:
       '@canofold/markdown':
-        specifier: 0.6.5
-        version: 0.6.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: 0.6.6
+        version: 0.6.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@canofold/plugins':
-        specifier: 0.6.5
-        version: 0.6.5(mermaid@12.2.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: 0.6.6
+        version: 0.6.6(mermaid@12.2.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@canofold/themes':
-        specifier: 0.6.5
-        version: 0.6.5
+        specifier: 0.6.6
+        version: 0.6.6
       '@plantuml/core':
         specifier: 1.2026.8
         version: 1.2026.8
@@ -75,15 +75,15 @@ packages:
   '@braintree/sanitize-url@7.1.2':
     resolution: {integrity: sha512-jigsZK+sMF/cuiB7sERuo9V7N9jx+dhmHHnQyDSVdpZwVutaBu7WvNYqMDLSgFgfB30n452TP3vjDAvFC973mA==}
 
-  '@canofold/markdown@0.6.5':
-    resolution: {integrity: sha512-fzo05vfuOLw+Z6sSr2wHIvN5xUKCtCKEMLErhprG3+meP4gGzCN/pYe5PFpIRytaAafPKSVqofmYpECABxcZlQ==}
+  '@canofold/markdown@0.6.6':
+    resolution: {integrity: sha512-R62CB8L0WQ8oH+Y7+l4BjCEVfLrLVGsD2a2pvDShOljmCewl2vVfbouY/dzP1MhcRPWDlNj7MDwp9EzYXM3eTg==}
     engines: {node: '>=22'}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
 
-  '@canofold/plugins@0.6.5':
-    resolution: {integrity: sha512-PL9uW8W/oHh+TgZ/7NeWF2Jbe5oyazR/z/WtDbLRjPaTHkxPdsV1er4+hugzg8RXKOjDUgPX8mLoURpMu2YxiA==}
+  '@canofold/plugins@0.6.6':
+    resolution: {integrity: sha512-yhvXOFMC8XaoyZqvBdGj3KFrEZ1qm1yo/Y2iElbA87i3N3asK7ctoULfEzqADEOQU3rkH9QFquCKkOEYESWs9g==}
     engines: {node: '>=22'}
     peerDependencies:
       mermaid: ^11.12.0 || ^12.0.0
@@ -94,8 +94,8 @@ packages:
       pagefind:
         optional: true
 
-  '@canofold/themes@0.6.5':
-    resolution: {integrity: sha512-B9gHiPa1Qu06ozpqYGLpnyzmiLHxePlZes92V1GuvTFido0CBsopKehuFbxhVhRrWuGZ7cQHHzYDw9VEgWHdYg==}
+  '@canofold/themes@0.6.6':
+    resolution: {integrity: sha512-D8VtiSSiZKzk2rLB7QD+6JHBMcuYdNs+/Wn0NdhmIZst84A9oP1R4pG7wZq8KNy/0tLiUkmDjx78YICQqVEm2g==}
 
   '@chevrotain/cst-dts-gen@13.2.0':
     resolution: {integrity: sha512-bA9dvWlhAUcHkNwU+8w9yiUxJPlj/Lm3VqS7MD+NbIR/7LmpNLuK/AWNFdCo/T3SK5ND0/UHf3IJvl/Jn/i6yg==}
@@ -1322,9 +1322,9 @@ snapshots:
 
   '@braintree/sanitize-url@7.1.2': {}
 
-  '@canofold/markdown@0.6.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@canofold/markdown@0.6.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@canofold/themes': 0.6.5
+      '@canofold/themes': 0.6.6
       '@mdx-js/mdx': 3.1.1
       '@shikijs/langs': 4.5.0
       '@shikijs/rehype': 4.5.0
@@ -1350,9 +1350,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@canofold/plugins@0.6.5(mermaid@12.2.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@canofold/plugins@0.6.6(mermaid@12.2.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@canofold/markdown': 0.6.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@canofold/markdown': 0.6.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       fflate: 0.8.3
       hast-util-from-html: 2.0.3
       katex: 0.18.10
@@ -1364,7 +1364,7 @@ snapshots:
       - react-dom
       - supports-color
 
-  '@canofold/themes@0.6.5': {}
+  '@canofold/themes@0.6.6': {}
 
   '@chevrotain/cst-dts-gen@13.2.0':
     dependencies:

@@ -4,7 +4,7 @@ Preview any saved `.md` file with [`@canofold/markdown`](https://www.npmjs.com/p
 
 ## Develop
 
-Requires Node.js 22+, pnpm, and VS Code 1.100+.
+Requires Node.js 22.12+, pnpm, and VS Code 1.100+.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -18,6 +18,8 @@ Cursor hides newly contributed editor-title actions by default. To keep the Cano
 The command palette also exposes **Canofold: Preview with Canofold** and **Canofold: Edit Markdown Source** as explicit one-way commands.
 
 The preview updates from the current text document, including unsaved edits. Relative images and links resolve from the Markdown file; links open through VS Code. The preview uses Canofold's light appearance independently of the editor's color theme. Raw HTML is sanitized, and MDX code is not executed.
+
+Unknown or invalid rich directives are displayed as inert source so valid surrounding content stays readable. Ordinary colon words such as `format:check` remain text. This recovery does not suppress plugin failures or relax HTML and local-resource security boundaries.
 
 Math, Mermaid, PlantUML, Graphviz/DOT, and D2 blocks are supported. Diagram source is rendered entirely on the local machine and is never sent to a public rendering service. Mermaid and PlantUML run in the isolated preview webview; Graphviz and D2 run in a dedicated Node.js worker owned by each preview and return only the generated SVG. Updating or closing a preview cancels obsolete work and releases its worker.
 
@@ -35,7 +37,7 @@ To run plugin and iframe tests in a real, isolated VS Code window, set `VSCODE_E
 VSCODE_EXECUTABLE='/Applications/Visual Studio Code.app/Contents/MacOS/Code' pnpm test:editor
 ```
 
-The tests cover first load, unsaved edits, failure recovery, and closing/reopening previews, including math rendering and iframe resource and permission boundaries. For a local `@canofold/plugins` build, append `--plugins-package /absolute/path/to/packages/plugins`; this builds an isolated consumer without changing the installed dependencies.
+The tests cover first load, unsaved edits, failure recovery, and closing/reopening previews, including directive recovery, math rendering, and iframe resource and permission boundaries. For a local Core build, append `--plugins-package /absolute/path/to/packages/plugins` and/or `--markdown-package /absolute/path/to/packages/markdown`; these build an isolated consumer without changing installed dependencies. Release acceptance must omit both options and use the published dependencies.
 
 The extension is currently an optional editor for `.md`; it does not change VS Code's default Markdown editor.
 
