@@ -6,9 +6,9 @@ const vscode = require('vscode')
 async function run() {
   const extension = vscode.extensions.getExtension('canofold.canofold-vscode')
   assert.ok(extension)
-  assert.equal(extension.packageJSON.dependencies['@canofold/markdown'], '0.6.5')
-  assert.equal(extension.packageJSON.dependencies['@canofold/plugins'], '0.6.5')
-  assert.equal(extension.packageJSON.dependencies['@canofold/themes'], '0.6.5')
+  assert.equal(extension.packageJSON.dependencies['@canofold/markdown'], '0.6.6')
+  assert.equal(extension.packageJSON.dependencies['@canofold/plugins'], '0.6.6')
+  assert.equal(extension.packageJSON.dependencies['@canofold/themes'], '0.6.6')
   assert.equal(extension.packageJSON.dependencies.mermaid, '12.2.0')
   const toggle = extension.packageJSON.contributes.commands.find((command) => command.command === 'canofold.toggle')
   assert.deepEqual(toggle.icon, {

@@ -38,7 +38,12 @@ async function createEditorHarness(name, initialSource = '# Initial') {
     wait: (label, predicate) => new Promise((resolve, reject) => {
       const timer = setTimeout(() => { notify = undefined; reject(new Error(`${label} timed out: ${JSON.stringify(last)}`)) }, 20000)
       notify = () => {
-        if (!last || !predicate(last)) return
+        if (!last) return
+        try {
+          if (!predicate(last)) return
+        } catch (error) {
+          clearTimeout(timer); notify = undefined; reject(error); return
+        }
         clearTimeout(timer); notify = undefined; resolve(last)
       }
       notify()

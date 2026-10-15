@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.12
+
+- Use Canofold 0.6.6 and enable localized rich-directive recovery for authoring previews, preserving ordinary colon text and valid surrounding content. Malformed structured containers remain complete inert source.
+- Stop displaying the loading indicator after a fatal preview failure; keep HTML sanitization and local resource boundaries unchanged.
+
 ## 0.1.11
 
 - Use Canofold 0.6.5 and Mermaid 12.2.0 with its patched KaTeX runtime, while preserving the default diagram layout and appearance.

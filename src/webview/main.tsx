@@ -39,12 +39,16 @@ const renderKrokiDiagram: import('@canofold/plugins/client/kroki').DiagramRender
 const loadLocalEmbed = (href: string, signal: AbortSignal) => host.request('loadLocalEmbed', { href }, signal)
 const loadLocalEmbedAsset = (documentPath: string, href: string, signal: AbortSignal) => host.request('loadLocalEmbedAsset', { documentPath, href }, signal)
 const mermaidModuleUrl = new URL('./mermaid.js', import.meta.url).href
-const plugins = [
-  math(),
-  mermaid({ moduleUrl: mermaidModuleUrl }),
-  kroki({ renderer: 'client' }),
-  plantUml({ renderer: 'client' })
-]
+const markdownOptions = {
+  html: 'sanitize' as const,
+  directives: { invalid: 'literal' as const },
+  plugins: [
+    math(),
+    mermaid({ moduleUrl: mermaidModuleUrl }),
+    kroki({ renderer: 'client' }),
+    plantUml({ renderer: 'client' })
+  ]
+}
 
 function isDocumentMessage(value: unknown): value is DocumentMessage {
   if (!value || typeof value !== 'object') return false
@@ -123,16 +127,18 @@ function Preview({ message }: { message: DocumentMessage }) {
       {error ? <p role="alert">Preview failed: {error}</p> : null}
       <Markdown
         source={source}
-        options={{ html: 'sanitize', plugins }}
+        options={markdownOptions}
         components={components}
         urlTransform={transformUrl}
         fallback={
-          <div className="preview-loading" role="status" aria-label="正在生成 Canofold 预览">
-            <img className="preview-loading-icon" src={canofoldIcon} alt="" />
-            <span className="preview-loading-track" aria-hidden="true">
-              <span className="preview-loading-indicator" />
-            </span>
-          </div>
+          error ? null : (
+            <div className="preview-loading" role="status" aria-label="正在生成 Canofold 预览">
+              <img className="preview-loading-icon" src={canofoldIcon} alt="" />
+              <span className="preview-loading-track" aria-hidden="true">
+                <span className="preview-loading-indicator" />
+              </span>
+            </div>
+          )
         }
         retainPrevious
         onError={(reason) => setError(String(reason))}
