@@ -2,7 +2,7 @@
   "name": "canofold-vscode",
   "displayName": "Canofold Markdown Preview",
   "description": "Preview Markdown with Canofold in the current VS Code editor tab.",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "packageManager": "pnpm@11.9.0",
   "publisher": "canofold",
   "icon": "media/canofold.png",
@@ -60,7 +60,7 @@
       "editor/title": [
         {
           "command": "canofold.toggle",
-          "when": "(editorLangId == markdown && !notebookEditorFocused) || activeCustomEditorId == 'canofold.markdownPreview'",
+          "when": "(resourceExtname =~ /^\\.md$/i && !notebookEditorFocused) || activeCustomEditorId == 'canofold.markdownPreview'",
           "group": "navigation@10"
         }
       ]
