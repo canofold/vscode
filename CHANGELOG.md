@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.14
+
+- Update the Markdown renderer, official plugins, and themes together to Canofold 0.6.8.
+
 ## 0.1.13
 
 - Show the preview toolbar action for `.md` files regardless of the editor language, including `SKILL.md` and instruction files, without changing their language association.
