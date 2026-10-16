@@ -6,6 +6,7 @@ const vscode = require('vscode')
 async function run() {
   const extension = vscode.extensions.getExtension('canofold.canofold-vscode')
   assert.ok(extension)
+  assert.equal(extension.packageJSON.version, '0.1.13')
   assert.equal(extension.packageJSON.dependencies['@canofold/markdown'], '0.6.6')
   assert.equal(extension.packageJSON.dependencies['@canofold/plugins'], '0.6.6')
   assert.equal(extension.packageJSON.dependencies['@canofold/themes'], '0.6.6')
@@ -15,6 +16,8 @@ async function run() {
     light: 'media/canofold.png',
     dark: 'media/canofold.png'
   })
+  const titleAction = extension.packageJSON.contributes.menus['editor/title'].find((item) => item.command === 'canofold.toggle')
+  assert.equal(titleAction.when, "(resourceExtname =~ /^\\.md$/i && !notebookEditorFocused) || activeCustomEditorId == 'canofold.markdownPreview'")
   await fs.access(path.join(extension.extensionPath, 'media/canofold.png'))
   await fs.access(path.join(extension.extensionPath, 'dist/webview/mermaid.js'))
   await fs.access(path.join(extension.extensionPath, 'dist/webview/plantuml/viz-global.js'))
@@ -69,6 +72,19 @@ async function run() {
     await vscode.commands.executeCommand('canofold.toggle', uri)
     assert.ok(vscode.window.tabGroups.activeTabGroup.activeTab?.input instanceof vscode.TabInputText)
     assert.equal(vscode.window.tabGroups.activeTabGroup.tabs.length, 1)
+    for (const [filename, language] of [['SKILL.md', 'skill'], ['guide.instructions.md', 'instructions'], ['README.MD', 'plaintext']]) {
+      const specialUri = vscode.Uri.file(path.join(directory, filename))
+      await fs.writeFile(specialUri.fsPath, '---\nname: example\n---\n\n# Markdown body\n')
+      const specialDocument = await vscode.workspace.openTextDocument(specialUri)
+      await vscode.languages.setTextDocumentLanguage(specialDocument, language)
+      await vscode.window.showTextDocument(specialDocument)
+      await vscode.commands.executeCommand('canofold.toggle')
+      assert.equal(vscode.window.tabGroups.activeTabGroup.activeTab?.input.viewType, 'canofold.markdownPreview')
+      await vscode.commands.executeCommand('canofold.source')
+      assert.equal(vscode.window.activeTextEditor?.document.uri.toString(), specialUri.toString())
+      assert.equal(vscode.window.activeTextEditor?.document.languageId, language)
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor')
+    }
   } finally {
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor')
   }
