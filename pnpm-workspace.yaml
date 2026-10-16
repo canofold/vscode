@@ -1,6 +1,6 @@
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
-  - '@canofold/markdown@0.6.6'
-  - '@canofold/plugins@0.6.6'
-  - '@canofold/themes@0.6.6'
+  - '@canofold/markdown@0.6.8'
+  - '@canofold/plugins@0.6.8'
+  - '@canofold/themes@0.6.8'
