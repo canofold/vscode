@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.15
+
+- Update the Markdown renderer, official plugins, and themes together to Canofold 0.7.0.
+- Commit rich-preview hydration before signaling readiness, preventing an immediate close or navigation from interrupting the React root.
+
 ## 0.1.14
 
 - Update the Markdown renderer, official plugins, and themes together to Canofold 0.6.8.

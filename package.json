@@ -2,7 +2,7 @@
   "name": "canofold-vscode",
   "displayName": "Canofold Markdown Preview",
   "description": "Preview Markdown with Canofold in the current VS Code editor tab.",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "packageManager": "pnpm@11.9.0",
   "publisher": "canofold",
   "icon": "media/canofold.png",
@@ -88,9 +88,9 @@
     "package": "pnpm dlx @vscode/vsce@3.9.2 package --no-dependencies"
   },
   "dependencies": {
-    "@canofold/markdown": "0.6.8",
-    "@canofold/plugins": "0.6.8",
-    "@canofold/themes": "0.6.8",
+    "@canofold/markdown": "0.7.0",
+    "@canofold/plugins": "0.7.0",
+    "@canofold/themes": "0.7.0",
     "@plantuml/core": "1.2026.8",
     "@terrastruct/d2": "0.1.33",
     "@viz-js/viz": "3.31.0",

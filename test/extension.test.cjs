@@ -2,14 +2,16 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs/promises')
 const path = require('node:path')
 const vscode = require('vscode')
+const manifest = require('../package.json')
 
 async function run() {
   const extension = vscode.extensions.getExtension('canofold.canofold-vscode')
   assert.ok(extension)
-  assert.equal(extension.packageJSON.version, '0.1.14')
-  assert.equal(extension.packageJSON.dependencies['@canofold/markdown'], '0.6.8')
-  assert.equal(extension.packageJSON.dependencies['@canofold/plugins'], '0.6.8')
-  assert.equal(extension.packageJSON.dependencies['@canofold/themes'], '0.6.8')
+  assert.equal(extension.packageJSON.version, manifest.version)
+  for (const name of ['@canofold/markdown', '@canofold/plugins', '@canofold/themes']) {
+    assert.equal(extension.packageJSON.dependencies[name], manifest.dependencies[name])
+    assert.equal(manifest.dependencies[name], manifest.dependencies['@canofold/markdown'])
+  }
   assert.equal(extension.packageJSON.dependencies.mermaid, '12.2.0')
   const toggle = extension.packageJSON.contributes.commands.find((command) => command.command === 'canofold.toggle')
   assert.deepEqual(toggle.icon, {
