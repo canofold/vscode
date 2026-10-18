@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.16
+
+- Update the pinned Markdown renderer, official plugins, and themes together to Canofold 0.7.1.
+
 ## 0.1.15
 
 - Update the Markdown renderer, official plugins, and themes together to Canofold 0.7.0.
