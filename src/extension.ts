@@ -3,6 +3,7 @@ import * as vscode from 'vscode'
 import { LocalDiagramRenderer } from './localDiagramRenderer'
 import { publicDirectoryCandidates } from './resourceRoots'
 import { readLocalEmbed, readLocalEmbedAsset } from './localEmbedResources'
+import { registerDocumentCheck } from './documentCheck'
 
 const VIEW_TYPE = 'canofold.markdownPreview'
 
@@ -231,6 +232,7 @@ class MarkdownPreviewProvider implements vscode.CustomTextEditorProvider {
 }
 
 export function activate(context: vscode.ExtensionContext): void {
+  registerDocumentCheck(context, activeMarkdownUri)
   context.subscriptions.push(
     vscode.window.registerCustomEditorProvider(VIEW_TYPE, new MarkdownPreviewProvider(context.extensionUri)),
     vscode.commands.registerCommand('canofold.toggle', async (resource?: vscode.Uri) => {

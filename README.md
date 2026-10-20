@@ -16,6 +16,14 @@ The command palette also exposes **Canofold: Preview with Canofold** and **Canof
 
 Switching to preview saves dirty source first. Once open, the preview updates from the current text document, including unsaved edits. Relative images and links resolve from the Markdown file; links open through VS Code. The preview uses Canofold's light appearance independently of the editor's color theme. Raw HTML is sanitized; MDX code and Skill instructions are not executed.
 
+## Project checks
+
+Run **Canofold: Check Project** from a file in a local workspace to check its nearest project declaring `canofold` in `dependencies` or `devDependencies`. Install Canofold through that project's normal dependency workflow first. The command executes the project's installed `canofold check --json`; it never installs a CLI, uses a global fallback, or duplicates Core's validation rules.
+
+Checks require a trusted workspace and an extension-host Node.js runtime of at least 22.12. Preview remains available without project checks. Checks read saved files only: save or discard that project's unsaved edits before running the command; it does not save them for you. Results appear in **Problems**, with source locations only where supplied by the CLI. Project-level issues and OpenAPI pointers explicitly indicate that no exact source position is available.
+
+Cancel from the progress notification. Editing project files invalidates old results; run the command again after saving. Re-running replaces obsolete work, and separate projects keep separate results. This is an explicit project check, not automatic whole-site validation on every keystroke.
+
 ## Rendering and boundaries
 
 Unknown or invalid rich directives are displayed as inert source so valid surrounding content stays readable. Ordinary colon words such as `format:check` remain text. This recovery does not suppress plugin failures or relax HTML and local-resource security boundaries.
@@ -50,6 +58,8 @@ VSCODE_EXECUTABLE='/Applications/Visual Studio Code.app/Contents/MacOS/Code' pnp
 ```
 
 The tests cover first load, unsaved edits, failure recovery, and closing/reopening previews, including directive recovery, math rendering, and iframe resource and permission boundaries. For a local Core build, append `--plugins-package /absolute/path/to/packages/plugins` and/or `--markdown-package /absolute/path/to/packages/markdown`; these build an isolated consumer without changing installed dependencies. Release acceptance must omit both options and use the published dependencies.
+
+To include checks against a real installed Canofold CLI, append `--check-project /absolute/path/to/consumer`. Trust only the disposable test workspace when VS Code prompts; the tests do not disable Workspace Trust. Waiting for that decision does not count toward the CLI execution timeout; close the test window to cancel the run.
 
 ## License
 
