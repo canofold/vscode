@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- Add an explicit Check Project command backed by the project's installed Canofold CLI, displaying diagnostics in Problems without duplicating Core validation.
+- Require workspace trust and saved project files; cancel obsolete checks and isolate results across workspace projects without changing preview behavior.
+
 ## 0.1.17
 
 - Update the pinned Markdown renderer, official plugins, and themes together to Canofold 0.8.0.

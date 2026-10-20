@@ -1,8 +1,8 @@
 {
   "name": "canofold-vscode",
   "displayName": "Canofold Markdown Preview",
-  "description": "Preview Markdown with Canofold in the current VS Code editor tab.",
-  "version": "0.1.17",
+  "description": "Preview Markdown in the current VS Code tab and check Canofold projects with their local CLI.",
+  "version": "0.2.0",
   "packageManager": "pnpm@11.9.0",
   "publisher": "canofold",
   "icon": "media/canofold.png",
@@ -30,10 +30,17 @@
     "onCommand:canofold.toggle",
     "onCommand:canofold.preview",
     "onCommand:canofold.source",
+    "onCommand:canofold.checkProject",
     "onCustomEditor:canofold.markdownPreview"
   ],
   "contributes": {
     "commands": [
+      {
+        "command": "canofold.checkProject",
+        "title": "Check Project",
+        "category": "Canofold",
+        "enablement": "isWorkspaceTrusted"
+      },
       {
         "command": "canofold.toggle",
         "title": "Toggle Canofold Preview",
@@ -77,6 +84,12 @@
         "priority": "option"
       }
     ]
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Markdown preview is available. Project checks require trust because they execute the project's installed Canofold CLI, configuration and plugins."
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm build",

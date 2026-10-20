@@ -16,6 +16,14 @@
 
 切到预览时会先保存尚未保存的源码；预览打开后，文档中的未保存修改也会实时更新。相对图片与链接按 Markdown 文件位置解析，链接通过 VS Code 打开。预览使用 Canofold 浅色外观，不跟随编辑器主题。原始 HTML 会被清理，不执行 MDX 代码或 Skill 指令。
 
+## 项目文档检查
+
+在本地工作区的文件中运行 **Canofold: Check Project**，检查最近的、在 `dependencies` 或 `devDependencies` 中声明 `canofold` 的项目。请先通过项目正常的依赖管理流程安装 Canofold。命令调用项目已安装的 `canofold check --json`，不自动安装、不回退到全局 CLI，也不重复实现 Core 的检查规则。
+
+检查要求工作区已受信任，且扩展宿主的 Node.js 运行时至少为 22.12；预览不依赖项目检查。检查只读取磁盘文件：请先保存或放弃该项目的未保存修改，命令不会代为保存。结果展示在 **Problems** 面板，只在 CLI 提供源码位置时定位；项目级问题和 OpenAPI pointer 会明确标注没有精确源码位置。
+
+可通过进度通知取消检查。编辑项目文件会清除过时结果，保存后需重新运行检查；连续执行会替换旧任务，不同项目各自保留结果。这是显式的项目检查，不会在每次输入时自动校验全站。
+
 ## 渲染能力与边界
 
 未知或无效的富文本指令会显示为不可执行的源码，保留周围正常内容。`format:check` 等普通冒号文本保持原样。这种容错不忽略插件故障，也不放宽 HTML 和本地资源的安全边界。
@@ -50,6 +58,8 @@ VSCODE_EXECUTABLE='/Applications/Visual Studio Code.app/Contents/MacOS/Code' pnp
 ```
 
 测试覆盖首次加载、未保存编辑、失败恢复、关闭重开，以及指令容错、数学和 iframe 资源与权限边界。验证本地 Core 构建时，可追加 `--plugins-package /absolute/path/to/packages/plugins` 和／或 `--markdown-package /absolute/path/to/packages/markdown`；测试会创建隔离消费者，不改动已安装依赖。正式发布验收必须省略这两个选项，使用已发布的依赖。
+
+要包含真实已安装 Canofold CLI 的检查验收，可追加 `--check-project /absolute/path/to/consumer`。VS Code 提示时，仅信任本轮临时测试工作区；测试不会关闭 Workspace Trust。等待人工确认不计入 CLI 执行超时；关闭测试窗口即可取消本轮验收。
 
 ## 许可证
 
