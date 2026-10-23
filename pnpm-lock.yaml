@@ -9,14 +9,14 @@ importers:
   .:
     dependencies:
       '@canofold/markdown':
-        specifier: 0.8.0
-        version: 0.8.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: 0.8.3
+        version: 0.8.3(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@canofold/plugins':
-        specifier: 0.8.0
-        version: 0.8.0(mermaid@12.2.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: 0.8.3
+        version: 0.8.3(mermaid@12.2.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@canofold/themes':
-        specifier: 0.8.0
-        version: 0.8.0
+        specifier: 0.8.3
+        version: 0.8.3
       '@plantuml/core':
         specifier: 1.2026.8
         version: 1.2026.8
@@ -79,18 +79,18 @@ packages:
   '@braintree/sanitize-url@7.1.2':
     resolution: {integrity: sha512-jigsZK+sMF/cuiB7sERuo9V7N9jx+dhmHHnQyDSVdpZwVutaBu7WvNYqMDLSgFgfB30n452TP3vjDAvFC973mA==}
 
-  '@canofold/markdown@0.8.0':
-    resolution: {integrity: sha512-k7gLkpUZZ7XM8hlLfWdEBArYPc/NFX47PhefDBDsNowS/aM+Icm0uxTAUjvN7wPZa2nF4jBbbwNGKYoqGO6+TQ==}
+  '@canofold/markdown@0.8.3':
+    resolution: {integrity: sha512-Lw6/CiLRP6tKCKu/ymPDox7ceX2kLhr/rUIDdiMAP4AGBmea7jy2foe/57jXZvcEcvGm+ILP6XnHGheKZTazHw==}
     engines: {node: '>=22.12.0'}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
 
-  '@canofold/plugins@0.8.0':
-    resolution: {integrity: sha512-xIxYrLOWTN9zXjuvLvwo1oSxKrtQ0sSPl2hPYWjbunWYnNcqgdSwuS3gVXb0jAxMQ1QLktu2XEE/6VJTJRVceQ==}
+  '@canofold/plugins@0.8.3':
+    resolution: {integrity: sha512-5Nuu9LO3gziWMSNv0eTYoYJujJIKET/1K/Xrki7x9syJPMA1VvRfko4Po3U0vJhdtRTYEAl6rOb0y5bAFM5Ypw==}
     engines: {node: '>=22.12.0'}
     peerDependencies:
-      canofold: ^0.8.0
+      canofold: ^0.8.3
       mermaid: ^11.12.0 || ^12.0.0
       pagefind: ^1.5.2
     peerDependenciesMeta:
@@ -101,8 +101,8 @@ packages:
       pagefind:
         optional: true
 
-  '@canofold/themes@0.8.0':
-    resolution: {integrity: sha512-GxwbRS5mE1gCnM6Gg8Ii4xhmqMPuyW/3WFGCwR6RV7frdPiJ09QuR/LvAz5mO9VwUzfBwfDfNY881oIw9sCJ+w==}
+  '@canofold/themes@0.8.3':
+    resolution: {integrity: sha512-xepL6jroiEJeJcBWSLDVE+GW1DeIXTK7IGRgjK94C5MOUnS6f3ZfEdwQESjEPYfg70n6TCNlankymLpKk9Cxig==}
 
   '@chevrotain/cst-dts-gen@13.2.0':
     resolution: {integrity: sha512-bA9dvWlhAUcHkNwU+8w9yiUxJPlj/Lm3VqS7MD+NbIR/7LmpNLuK/AWNFdCo/T3SK5ND0/UHf3IJvl/Jn/i6yg==}
@@ -756,8 +756,8 @@ packages:
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
 
-  dompurify@3.4.16:
-    resolution: {integrity: sha512-sqo+pNp3qRhCIpbgRi1y8Tgk27Bo2Ry7w0dC1NBeNTdZChWjz9Xb/KOoZbRP/R6pQZ80Qw8YhXw13hWWBbMRnQ==}
+  dompurify@3.4.17:
+    resolution: {integrity: sha512-B/pSlYVHQ58kqISD/yDjuJ1yfzI34m1gF4lAod2bwSRhiN4K5Cl3H8Af7hqB2PmTL911tdEudnnXn5FnhRoz0w==}
 
   elkjs@0.9.3:
     resolution: {integrity: sha512-f/ZeWvW/BCXbhGEf1Ujp29EASo/lk1FDnETgNKwJrsVvGZhUWCZyg3xLJjAsxfOmt8KjswHmI5EwCQcPMpOYhQ==}
@@ -1410,9 +1410,9 @@ snapshots:
 
   '@braintree/sanitize-url@7.1.2': {}
 
-  '@canofold/markdown@0.8.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@canofold/markdown@0.8.3(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@canofold/themes': 0.8.0
+      '@canofold/themes': 0.8.3
       '@mdx-js/mdx': 3.1.1
       '@shikijs/langs': 4.5.0
       '@shikijs/rehype': 4.5.0
@@ -1438,9 +1438,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@canofold/plugins@0.8.0(mermaid@12.2.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@canofold/plugins@0.8.3(mermaid@12.2.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@canofold/markdown': 0.8.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@canofold/markdown': 0.8.3(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@redocly/openapi-core': 2.64.1
       fflate: 0.8.3
       hast-util-from-html: 2.0.3
@@ -1455,7 +1455,7 @@ snapshots:
       - react-dom
       - supports-color
 
-  '@canofold/themes@0.8.0': {}
+  '@canofold/themes@0.8.3': {}
 
   '@chevrotain/cst-dts-gen@13.2.0':
     dependencies:
@@ -2113,7 +2113,7 @@ snapshots:
     dependencies:
       dequal: 2.0.3
 
-  dompurify@3.4.16:
+  dompurify@3.4.17:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
@@ -2691,7 +2691,7 @@ snapshots:
       d3-sankey: 0.12.3
       dagre-d3-es: 7.0.14
       dayjs: 1.11.23
-      dompurify: 3.4.16
+      dompurify: 3.4.17
       elkjs: 0.9.3
       es-toolkit: 1.52.0
       katex: 0.18.10

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+- Update the pinned Markdown renderer, official plugins, and themes together to Canofold 0.8.3, including bounded rendering caches, reduced repeated highlighting work and first-click interaction fixes.
+- Refresh Mermaid's DOMPurify dependency within its supported range to include upstream security fixes.
+- Project checks continue to use the project's installed Canofold CLI rather than the extension's preview dependencies.
+
 ## 0.2.0
 
 - Add an explicit Check Project command backed by the project's installed Canofold CLI, displaying diagnostics in Problems without duplicating Core validation.

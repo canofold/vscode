@@ -16,6 +16,7 @@ const scratch = await mkdtemp(join(tmpdir(), 'canofold-editor-test-'))
 const consumer = join(scratch, 'extension')
 const workspace = await mkdtemp(join(root, '.editor-test-'))
 const workspaceFile = join(scratch, 'acceptance.code-workspace')
+const completionFile = join(scratch, 'completed')
 try {
   await writeFile(workspaceFile, JSON.stringify({ folders: [{ path: workspace }] }))
   let checkPackage
@@ -48,10 +49,17 @@ try {
       `--user-data-dir=${join(scratch, 'user-data')}`, `--extensions-dir=${join(scratch, 'extensions')}`,
       `--extensionDevelopmentPath=${consumer}`, `--extensionTestsPath=${join(consumer, 'test/editor.test.cjs')}`,
       '--disable-extensions', '--skip-welcome', '--skip-release-notes', workspaceFile
-    ], { stdio: 'inherit', env: { ...process.env, ...(checkPackage ? { CANOFOLD_CHECK_PACKAGE: checkPackage } : {}) } })
+    ], { stdio: 'inherit', env: { ...process.env, CANOFOLD_EDITOR_COMPLETION_FILE: completionFile, ...(checkPackage ? { CANOFOLD_CHECK_PACKAGE: checkPackage } : {}) } })
     child.once('error', reject)
     child.once('exit', (code, signal) => accept(code ?? (signal ? 1 : 0)))
   })
+  if (result === 0) {
+    const completed = await readFile(completionFile, 'utf8').catch((error) => {
+      if (error.code === 'ENOENT') return ''
+      throw error
+    })
+    if (completed !== 'passed') throw new Error('VS Code exited before editor acceptance completed.')
+  }
   process.exitCode = result
 } finally {
   await rm(scratch, { recursive: true, force: true })
